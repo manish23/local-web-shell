@@ -11,6 +11,8 @@ import io.javalin.Javalin;
 import io.javalin.websocket.WsSession;
 
 import java.lang.invoke.MethodHandles;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
@@ -20,11 +22,8 @@ import java.util.stream.Collectors;
 
 import org.eclipse.jetty.websocket.api.Session;
 import org.json.JSONObject;
-import static j2html.TagCreator.article;
-import static j2html.TagCreator.attrs;
-import static j2html.TagCreator.b;
-import static j2html.TagCreator.p;
-import static j2html.TagCreator.span;
+
+import static j2html.TagCreator.*;
 
 public class LocalWebShell {
 
@@ -37,6 +36,7 @@ public class LocalWebShell {
 
     public static void main(String[] args)
     {
+        printHostname();
         new LocalWebShell().startServer();
     }
 
@@ -186,6 +186,27 @@ public class LocalWebShell {
         System.out.println(new Date() + " :: " + sender + " :: " + html);
 
         return html;
+    }
+
+    public static void printHostname()
+    {
+        InetAddress inetAddress;
+        String hostname;
+
+        try
+        {
+            inetAddress = InetAddress.getLocalHost();
+            hostname = inetAddress.getHostName();
+            System.out.println("IP address = " + inetAddress);
+            System.out.println("Hostname = " + hostname);
+        }
+        catch (UnknownHostException e)
+        {
+            System.err.println("cannot get hostname, " + e.getMessage());
+            e.printStackTrace();
+        }
+
+
     }
 
 }
