@@ -1,0 +1,42 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font: 14px monospace;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+input {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+button {
+    float: right;
+}
+
+li {
+    margin: 5px 0;
+}
+
+@keyframes enter {
+    from {
+        transform: none;
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    to {
+        transform: none;
+    }
+}
+
+textarea {
+    overflow: scroll;
+    height: 600px;
+    width:100%;
+}
