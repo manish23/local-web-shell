@@ -174,7 +174,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>org.lazycat.webshell.LocalWebShell</mainClass>
+                            <mainClass>org.lazycat.webshell.WebShellLauncher</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

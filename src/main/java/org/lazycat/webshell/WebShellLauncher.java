@@ -12,20 +12,19 @@ import org.lazycat.webshell.utils.WebsocketUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LocalWebShell {
+public class WebShellLauncher {
 
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass().getSimpleName());
 
     private WebsocketSessionManager websocketSessionManager = WebsocketSessionManager.getInstance();
 
-    private static boolean serverNeedsServingClient = false;
+    private static boolean serverNeedsServingClient = true;
     private static int serverPort = 7070;
 
     public static void main(String[] args)
     {
-        ProcessUtils.printHostname();
 
-        new LocalWebShell().startServer();
+        new WebShellLauncher().startServer();
     }
 
     public void startServer()
@@ -68,7 +67,7 @@ public class LocalWebShell {
 
                     if(serverNeedsServingClient)
                         WebsocketUtils.processMsgByServerUsingServingClient(operationsHandlerForServerUsingServingClientMode,
-                                session.getId(), message, WebsocketSessionManager.getInstance().getServingClientInfo());
+                                session.getId(), message, websocketSessionManager.getServingClientInfo());
                     else
                         WebsocketUtils.processMsgByServerLocally(operationsHandlerForServerUsingServerMode,
                                 session.getId(), message);

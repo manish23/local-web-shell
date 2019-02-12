@@ -24,18 +24,6 @@ public class OperationsHandlerForServerUsingServerMode implements OperationsHand
     private Map<String, LocalProcessInfo> processInfoMap = new HashMap<>();
 
     @Override
-    public LocalProcessInfo findProcessInfo(String processUuid)
-    {
-        return processInfoMap.get(processUuid);
-    }
-
-    @Override
-    public LocalProcessInfo addProcessInfoIntoMap(String processUuid, LocalProcessInfo localProcessInfo)
-    {
-        return processInfoMap.put(processUuid, localProcessInfo);
-    }
-
-    @Override
     public LocalProcessInfo onConnect(String processUuid, WsSession currentWebsocketSesssion) throws Exception
     {
 //        websocketMsgType = "TERMINAL_PRINT";

@@ -89,13 +89,4 @@ public class OperationsHandlerForServerUsingServingClientMode implements Operati
         this.processInfoMap = processInfoMap;
     }
 
-    @Override
-    public RemoteProcessInfo findProcessInfo(String processUuid) {
-        return processInfoMap.get(processUuid);
-    }
-
-    @Override
-    public RemoteProcessInfo addProcessInfoIntoMap(String processUuid, RemoteProcessInfo processInfo) {
-        return processInfoMap.put(processUuid, processInfo);
-    }
 }
