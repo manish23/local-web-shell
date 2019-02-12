@@ -23,6 +23,7 @@ public class WebShellLauncher {
 
     public static void main(String[] args)
     {
+        ProcessUtils.printHostname();
 
         new WebShellLauncher().startServer();
     }
