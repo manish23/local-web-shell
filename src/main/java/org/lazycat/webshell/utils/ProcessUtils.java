@@ -5,6 +5,7 @@ import com.pty4j.WinSize;
 import io.vavr.control.Try;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.jetty.websocket.api.Session;
 import org.lazycat.webshell.Constants;
 import org.lazycat.webshell.process.impl.local.LocalProcessInfo;
@@ -21,6 +22,7 @@ import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,14 +39,11 @@ public class ProcessUtils
 
     public static boolean isPortAvailable(int port)
     {
-        try {
-            ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(
-                    port, 1, InetAddress.getByName("localhost"));
-            serverSocket.close();
-            return true;
-        }
-        catch (Exception ex) {
+        try (Socket ignored = new Socket("localhost", port)) {
             return false;
+        }
+        catch (IOException ignored) {
+            return true;
         }
     }
 
@@ -85,16 +84,36 @@ public class ProcessUtils
         if (StringUtils.isEmpty(shellStarter))
             shellStarter = System.getenv(Constants.SHELL);
 
-        if (StringUtils.isEmpty(shellStarter)) {
-            shellStarter = "jshell.exe";
-        }
+        if (StringUtils.isEmpty(shellStarter))
+            shellStarter = System.getProperty(Constants.shell);
+
+        if (StringUtils.isEmpty(shellStarter))
+            shellStarter = System.getProperty(Constants.SHELL);
+
+        if (StringUtils.isEmpty(shellStarter) && SystemUtils.IS_OS_UNIX)
+            shellStarter = Constants.UNIX_DEFAULT_SHELL;
+
+        if (StringUtils.isEmpty(shellStarter) && SystemUtils.IS_OS_WINDOWS)
+            shellStarter = Constants.WINDOWS_DEFAULT_SHELL;
 
         return shellStarter;
     }
 
-    public static LocalProcessInfo startShellProcess(String processUuid) throws IOException
+    public static String getTempDirectory()
     {
         String tmpDir = System.getProperty("java.io.tmpdir");
+
+        if(SystemUtils.IS_OS_MAC)
+            tmpDir = "/tmp";
+
+        return tmpDir;
+    }
+
+    public static LocalProcessInfo startShellProcess(String processUuid) throws IOException
+    {
+        String tmpDir = getTempDirectory();
+        logger.info("tmpDir = " + tmpDir);
+
         Path dataDir = Paths.get(tmpDir).resolve(".terminalfx");
         copyLibPty(dataDir);
 
@@ -182,9 +201,22 @@ public class ProcessUtils
 
         processInfo.getProcess().waitFor();
 
+        stopProcess(processInfo);
+    }
+
+    public static void stopProcess(LocalProcessInfo processInfo)
+    {
+        logger.info("stopping process " + processInfo + " start");
+
         processInfo.getProcess().destroyForcibly();
 
-        IOUtils.closeQuietly(processInfo.getOutputWriter());
+        IOUtils.closeQuietly(
+                processInfo.getInputReader(),
+                processInfo.getOutputWriter(),
+                processInfo.getErrorReader()
+        );
+
+        logger.info("stopping process " + processInfo + " end");
     }
 
     public static void resizeProcessWindow(PtyProcess process, Integer cols, Integer rows)

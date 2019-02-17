@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
 
@@ -21,7 +22,7 @@ public class OperationsHandlerForServerUsingServerMode implements OperationsHand
 {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass().getSimpleName());
 
-    private Map<String, LocalProcessInfo> processInfoMap = new HashMap<>();
+    private Map<String, LocalProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
     @Override
     public LocalProcessInfo onConnect(String processUuid, WsSession currentWebsocketSesssion) throws Exception
@@ -44,7 +45,8 @@ public class OperationsHandlerForServerUsingServerMode implements OperationsHand
     public LocalProcessInfo createNewProcess(String processUuid) throws IOException
     {
         LocalProcessInfo localProcessInfo = ProcessUtils.startShellProcess(processUuid);
-        return addProcessInfoIntoMap(processUuid, localProcessInfo);
+        addProcessInfoIntoMap(processUuid, localProcessInfo);
+        return localProcessInfo;
     }
 
     public void onMessageTerminalResize(String processUuid, String message) throws Exception

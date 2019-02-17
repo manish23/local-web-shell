@@ -6,6 +6,10 @@ public class Constants
     public static final String PTY_LIB_FOLDER = "PTY_LIB_FOLDER";
     public static final String shell = "shell";
     public static final String SHELL = "SHELL";
+
+    public static final String UNIX_DEFAULT_SHELL = "/bin/bash";
+    public static final String WINDOWS_DEFAULT_SHELL = "jshell.exe";
+
     public static final long WS_SESSION_IDLE_TIMEOUT = 1000 * 60 * 60; // 60 mins
 
     public static final String serverHost = "serverHost";

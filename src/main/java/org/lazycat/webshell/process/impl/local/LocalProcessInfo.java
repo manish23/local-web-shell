@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -36,4 +37,16 @@ public class LocalProcessInfo implements IProcessInfo
         return ProcessType.LOCAL;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LocalProcessInfo that = (LocalProcessInfo) o;
+        return Objects.equals(processUuid, that.processUuid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(processUuid);
+    }
 }

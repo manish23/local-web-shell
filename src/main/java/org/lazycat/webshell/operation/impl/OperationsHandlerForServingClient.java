@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
 
@@ -22,7 +23,7 @@ public class OperationsHandlerForServingClient implements OperationsHandler<Loca
 {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass().getSimpleName());
 
-    private Map<String, LocalProcessInfo> processInfoMap = new HashMap<>();
+    private Map<String, LocalProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
     @Override
     public LocalProcessInfo onConnect(String processUuid, WsSession currentWebsocketSesssion) throws Exception

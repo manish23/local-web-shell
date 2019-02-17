@@ -1,7 +1,9 @@
 package org.lazycat.webshell.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import io.javalin.websocket.WsSession;
+import io.vavr.control.Try;
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.StatusCode;
@@ -27,10 +29,14 @@ public class WebsocketUtils
 
         String message = websocketMessage.toJson();
 
-        if (websocketSession.isOpen())
-            websocketSession.getRemote().sendString(message);
-        else
-            logger.error("cannot send msg to closed session, " + websocketMessage);
+        // https://stackoverflow.com/questions/36305830/blocking-message-pending-10000-for-blocking-using-spring-websockets
+        synchronized (websocketSession)
+        {
+            if (websocketSession.isOpen())
+                websocketSession.getRemote().sendString(message);
+            else
+                logger.error("cannot send msg to closed session, " + websocketMessage);
+        }
 
         logger.info("sendMsgToWebsocket : Exit");
     }
@@ -108,7 +114,7 @@ public class WebsocketUtils
         if(session == null)
             return false;
 
-        boolean isServingClient = BooleanUtils.toBoolean(session.getUpgradeRequest().getHeader("REGISTER_AS_SERVING_CLIENT"));
+        boolean isServingClient = BooleanUtils.toBoolean(session.getUpgradeRequest().getHeader(Constants.REGISTER_AS_SERVING_CLIENT));
 
         if(! serverNeedsServingClient && isServingClient)
         {
@@ -124,6 +130,12 @@ public class WebsocketUtils
     {
         return BooleanUtils.toBoolean(
                 session.getUpgradeRequest().getHeader(Constants.REGISTER_AS_SERVING_CLIENT));
+    }
+
+    public static boolean isValidJson(String message)
+    {
+        return Try.run(() -> new ObjectMapper().readTree(message))
+                .isSuccess();
     }
 
 }

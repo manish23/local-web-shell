@@ -15,13 +15,14 @@ import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class OperationsHandlerForServerUsingServingClientMode implements OperationsHandler<RemoteProcessInfo>
 {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass().getSimpleName());
 
-    private Map<String, RemoteProcessInfo> processInfoMap = new HashMap<>();
+    private Map<String, RemoteProcessInfo> processInfoMap = new ConcurrentHashMap<>();
 
     @Override
     public RemoteProcessInfo onConnect(String processUuid, WsSession currentSesssion) throws Exception

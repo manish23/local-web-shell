@@ -13,7 +13,7 @@ import org.lazycat.webshell.websocket.message.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@WebSocket(maxTextMessageSize = 64 * 1024)
+@WebSocket(maxTextMessageSize = 64 * 1024, maxBinaryMessageSize = Integer.MAX_VALUE)
 public class ServingClientWebSocket
 {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass().getSimpleName());
