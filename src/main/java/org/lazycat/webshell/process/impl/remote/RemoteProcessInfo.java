@@ -5,6 +5,8 @@ import lombok.Setter;
 import org.lazycat.webshell.process.ProcessType;
 import org.lazycat.webshell.process.interfaces.IProcessInfo;
 
+import java.util.Objects;
+
 @Getter
 @Setter
 public class RemoteProcessInfo implements IProcessInfo
@@ -32,4 +34,17 @@ public class RemoteProcessInfo implements IProcessInfo
         this.remoteProcessUuid = processUuid;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RemoteProcessInfo that = (RemoteProcessInfo) o;
+        return Objects.equals(remoteProcessUuid, that.remoteProcessUuid) &&
+                Objects.equals(remoteWebSessionUuid, that.remoteWebSessionUuid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(remoteProcessUuid, remoteWebSessionUuid);
+    }
 }

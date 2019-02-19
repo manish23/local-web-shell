@@ -76,9 +76,9 @@ public class TestServer
             fail("test failed, " + ExceptionUtils.getStackTrace(testFailureException));
     }
 
-    @DisplayName("end to end test")
+    @DisplayName("e2e - clientConnect Then SendCommand Then GetOutput")
     @Test
-    public void testClientCloseSessionShouldStopShellProcess123() throws Exception
+    public void clientConnectThenSendCommandThenGetOutput() throws Exception
     {
         OperationsHandlerForServerUsingServerMode operationsHandlerForServerUsingServerMode
                 = new OperationsHandlerForServerUsingServerMode();
@@ -162,40 +162,6 @@ public class TestServer
         waitForOnMessage.set(new CountDownLatch(1));
         waitForOnMessage.get().await(2, TimeUnit.SECONDS);
 
-//        AtomicReference<LocalProcessInfo> localProcessInfo = new AtomicReference<>();
-//
-//        MultiMap headerMap = new VertxHttpHeaders();
-//        HttpClient client = Vertx.vertx().createHttpClient();
-//
-//        client.websocket(serverPort, serverHost, topic, headerMap, ws ->
-//        {
-//            ws.handler(data ->
-//            {
-//                String msg = data.toString(Charset.defaultCharset());
-//
-//                verify(() -> assertTrue(WebsocketUtils.isValidJson(msg)));
-//                WebsocketMessage websocketMessage = Try.of(() -> WebsocketMessage.fromJson(msg)).get();
-//
-//                verify(() -> assertThat(websocketMessage.getReceivingSessionUuid(), is(not(isEmptyOrNullString()))));
-//
-//                localProcessInfo.set(
-//                        operationsHandlerForServerUsingServerMode.getProcessInfoMap().get(websocketMessage.getReceivingSessionUuid()));
-//
-//                client.close();
-//                server.stop();
-//            });
-//            ws.closeHandler(asd ->
-//            {
-//                verifyShellProcess(localProcessInfo.get(), false);
-//                verify(() -> assertThat(operationsHandlerForServerUsingServerMode.getProcessInfoMap(), aMapWithSize(0)));
-//
-//                testEndLatch.countDown();
-//            });
-//
-//            ws.writeTextMessage("Hello world");
-//        });
-//
-//        testEndLatch.await(5, TimeUnit.SECONDS);
     }
 
 
@@ -240,29 +206,6 @@ public class TestServer
 
         testEndLatch.await(5, TimeUnit.SECONDS);
 
-//        MultiMap headerMap = new VertxHttpHeaders();
-//        HttpClient client = Vertx.vertx().createHttpClient();
-//
-//        client.websocket(serverPort, serverHost, topic, headerMap, ws ->
-//        {
-//            ws.handler(data ->
-//            {
-//                String msg = data.toString(Charset.defaultCharset());
-//                log.info("Received data " + msg);
-//
-//                verify(() -> assertTrue(WebsocketUtils.isValidJson(msg)));
-//                WebsocketMessage websocketMessage = Try.of(() -> WebsocketMessage.fromJson(msg)).get();
-//
-//                verify(() -> assertThat(websocketMessage.getReceivingSessionUuid(), is(not(isEmptyOrNullString()))));
-//
-//                client.close();
-//                testEndLatch.countDown();
-//            });
-//
-//            ws.writeTextMessage("Hello world");
-//        });
-//
-//        testEndLatch.await(1, TimeUnit.SECONDS);
     }
 
     @DisplayName("close-session should stop shell process on server")
@@ -315,41 +258,6 @@ public class TestServer
         verifyShellProcess(localProcessInfo.get(), false);
         verify(() -> assertThat(operationsHandlerForServerUsingServerMode.getProcessInfoMap(), aMapWithSize(0)));
 
-
-//        AtomicReference<LocalProcessInfo> localProcessInfo = new AtomicReference<>();
-//
-//        MultiMap headerMap = new VertxHttpHeaders();
-//        HttpClient client = Vertx.vertx().createHttpClient();
-//
-//        client.websocket(serverPort, serverHost, topic, headerMap, ws ->
-//        {
-//            ws.handler(data ->
-//            {
-//                String msg = data.toString(Charset.defaultCharset());
-//
-//                verify(() -> assertTrue(WebsocketUtils.isValidJson(msg)));
-//                WebsocketMessage websocketMessage = Try.of(() -> WebsocketMessage.fromJson(msg)).get();
-//
-//                verify(() -> assertThat(websocketMessage.getReceivingSessionUuid(), is(not(isEmptyOrNullString()))));
-//
-//                localProcessInfo.set(
-//                        operationsHandlerForServerUsingServerMode.getProcessInfoMap().get(websocketMessage.getReceivingSessionUuid()));
-//
-//                client.close();
-//                server.stop();
-//            });
-//            ws.closeHandler(asd ->
-//            {
-//                verifyShellProcess(localProcessInfo.get(), false);
-//                verify(() -> assertThat(operationsHandlerForServerUsingServerMode.getProcessInfoMap(), aMapWithSize(0)));
-//
-//                testEndLatch.countDown();
-//            });
-//
-//            ws.writeTextMessage("Hello world");
-//        });
-//
-//        testEndLatch.await(5, TimeUnit.SECONDS);
     }
 
     @DisplayName("client sends valid json msg")
@@ -400,34 +308,6 @@ public class TestServer
         verifyShellProcess(localProcessInfo.get(), true);
         verify(() -> assertThat(operationsHandlerForServerUsingServerMode.getProcessInfoMap(), aMapWithSize(1)));
 
-
-//        MultiMap headerMap = new VertxHttpHeaders();
-//        HttpClient client = Vertx.vertx().createHttpClient();
-//
-//        client.websocket(serverPort, serverHost, topic, headerMap, ws ->
-//        {
-//            ws.handler(data ->
-//            {
-//                String msg = data.toString(Charset.defaultCharset());
-//                log.info("Received data " + msg);
-//
-//                verify(() -> assertTrue(WebsocketUtils.isValidJson(msg)));
-//                WebsocketMessage websocketMessage = Try.of(() -> WebsocketMessage.fromJson(msg)).get();
-//
-//                verify(() -> assertThat(websocketMessage.getReceivingSessionUuid(), is(not(isEmptyOrNullString()))));
-//
-//                client.close();
-//                testEndLatch.countDown();
-//            });
-//            ws.closeHandler(asd ->
-//            {
-////                fail("client session got closed");
-//            });
-//
-//            ws.writeTextMessage(
-//                    Try.of(() -> WebsocketMessage.builder().type(MessageType.TERMINAL_READY).build().toJson()).get());
-//        });
-
         testEndLatch.await(1, TimeUnit.SECONDS);
     }
 
@@ -464,7 +344,7 @@ public class TestServer
                 });
     }
 
-    public void verifyShellProcess(LocalProcessInfo localProcessInfo, boolean processShudBeUp)
+    public void verifyShellProcess(LocalProcessInfo localProcessInfo, boolean expectedProcessStatus)
     {
         verify(() -> assertNotNull(localProcessInfo, "localProcessInfo"));
         verify(() -> assertNotNull(localProcessInfo.getProcess(), "localProcessInfo"));
@@ -473,9 +353,9 @@ public class TestServer
                 ProcessType.LOCAL, equalTo(localProcessInfo.getProcessType())));
 
         verify(() -> assertThat("process isRunning() check",
-                processShudBeUp, equalTo(localProcessInfo.getProcess().isRunning())));
+                expectedProcessStatus, equalTo(localProcessInfo.getProcess().isRunning())));
 
         verify(() -> assertThat("process isAlive() check",
-                processShudBeUp, equalTo(localProcessInfo.getProcess().isAlive())));
+                expectedProcessStatus, equalTo(localProcessInfo.getProcess().isAlive())));
     }
 }

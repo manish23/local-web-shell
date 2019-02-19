@@ -13,7 +13,7 @@ import org.lazycat.webshell.websocket.message.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@WebSocket(maxTextMessageSize = 64 * 1024, maxBinaryMessageSize = Integer.MAX_VALUE)
+@WebSocket//(maxTextMessageSize = 64 * 1024 * 1024, maxBinaryMessageSize = 1024 * 1024 * 1024)
 public class ServingClientWebSocket
 {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass().getSimpleName());
@@ -22,10 +22,11 @@ public class ServingClientWebSocket
 
     private Session session;
 
-    OperationsHandlerForServingClient operationsHandler = new OperationsHandlerForServingClient();
+    OperationsHandlerForServingClient operationsHandler = null;
 
-    public ServingClientWebSocket()
+    public ServingClientWebSocket(OperationsHandlerForServingClient operationsHandler)
     {
+        this.operationsHandler = operationsHandler;
         this.closeLatch = new CountDownLatch(1);
     }
 
@@ -37,7 +38,7 @@ public class ServingClientWebSocket
     @OnWebSocketClose
     public void onClose(Session session, int statusCode, String reason)
     {
-        logger.info("Connection closed: %d - %s", statusCode, reason);
+        logger.info("Connection closed: " + statusCode + " : " + reason);
         this.session = null;
         this.closeLatch.countDown(); // trigger latch
     }

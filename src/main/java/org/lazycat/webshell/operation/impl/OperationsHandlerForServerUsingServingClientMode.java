@@ -1,10 +1,13 @@
 package org.lazycat.webshell.operation.impl;
 
 import io.javalin.websocket.WsSession;
+import io.vavr.control.Try;
 import org.eclipse.jetty.websocket.api.Session;
+import org.lazycat.webshell.file.FileWriterThread;
 import org.lazycat.webshell.operation.interfaces.OperationsHandler;
 import org.lazycat.webshell.process.impl.remote.RemoteProcessInfo;
 import org.lazycat.webshell.server.ServingClientInfo;
+import org.lazycat.webshell.websocket.message.WebsocketFileMessage;
 import org.lazycat.webshell.websocket.session.WebsocketSessionManager;
 import org.lazycat.webshell.utils.WebsocketUtils;
 import org.lazycat.webshell.websocket.message.MessageType;
@@ -40,7 +43,11 @@ public class OperationsHandlerForServerUsingServingClientMode implements Operati
         if (servingClientInfo.getWebsocketSession().isOpen())
             servingClientInfo.getWebsocketSession().getRemote().sendString(message);
 
-        return new RemoteProcessInfo(processUuid, servingClientInfo.getSessionUuid());
+        RemoteProcessInfo remoteProcessInfo = new RemoteProcessInfo(processUuid, servingClientInfo.getSessionUuid());
+
+        processInfoMap.put(processUuid, remoteProcessInfo);
+
+        return remoteProcessInfo;
     }
 
     public void onMessageTerminalCommand(String processUuid, String message, ServingClientInfo servingClientInfo) throws Exception
@@ -78,6 +85,25 @@ public class OperationsHandlerForServerUsingServingClientMode implements Operati
 
         Session session = WebsocketSessionManager.getInstance().getSession(websocketMessage.getReceivingSessionUuid());
         WebsocketUtils.sendMsgToWebsocket(session, websocketMessage);
+    }
+
+    public void onMessageFtp(String processUuid, String message) throws Exception
+    {
+        WebsocketFileMessage websocketFileMessage = WebsocketFileMessage.fromJson(message);
+
+        logger.info("onMessage() : FILE_TRANSFER : sessionId = " + processUuid);
+
+        FileWriterThread fileWriterThread = new FileWriterThread("", "", "", null);
+
+        if(websocketFileMessage.getFileContent() != null)
+        {
+            Try.run(() -> fileWriterThread.writeFile(websocketFileMessage))
+                    .onFailure(ex -> logger.error("exception while writing file. File might get corrupted", ex));
+
+            // TODO : If writeFile() gets error, Then next chunk will corrupt the entire file !!!
+            // TODO : send TERMINAL_PRINT to show file transfer progress
+        }
+
     }
 
     @Override

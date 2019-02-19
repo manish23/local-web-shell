@@ -1,5 +1,6 @@
 package org.lazycat.webshell.client;
 
+import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.util.AbstractMap;
@@ -20,6 +21,8 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.lazycat.webshell.Constants;
+import org.lazycat.webshell.file.FileReaderThread;
+import org.lazycat.webshell.operation.impl.OperationsHandlerForServingClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,17 +43,29 @@ public class ServingClientLauncher
         int serverPort = MapUtils.getInteger(argsMap, Constants.serverPort, 7070);
         String protocol = MapUtils.getString(argsMap, Constants.protocol, "ws");
         String topic = MapUtils.getString(argsMap, Constants.topic, "terminal");
+        boolean ftpMode = MapUtils.getBoolean(argsMap, Constants.ftpMode, false);
+        String file = MapUtils.getString(argsMap, Constants.file, "");
 
-        new ServingClientLauncher().startClient(serverHost, serverPort, protocol, topic);
+//        ftpMode = true;
+//        file = "/Users/manish/Downloads/android-studio-ide-181.5056338_ORIGINAL.dmg";
+//        file = "/Users/manish/Downloads/pom.xml";
+
+        OperationsHandlerForServingClient operationsHandler = new OperationsHandlerForServingClient();
+
+        if(ftpMode)
+            new ServingClientLauncher().startFtpClient(serverHost, serverPort, protocol, topic, operationsHandler, file);
+        else
+            new ServingClientLauncher().startClient(serverHost, serverPort, protocol, topic, operationsHandler);
 
     }
 
-    public void startClient(String serverHost, int serverPort, String protocol, String topic)
+    public void startClient(String serverHost, int serverPort, String protocol, String topic,
+                            OperationsHandlerForServingClient operationsHandler)
     {
         String uriPath = protocol + "://" + serverHost + ":" + serverPort + "/" + topic;
 
         WebSocketClient websocketclient = new WebSocketClient();
-        ServingClientWebSocket socket = new ServingClientWebSocket();
+        ServingClientWebSocket socket = new ServingClientWebSocket(operationsHandler);
         Session session = null;
 
         try
@@ -69,7 +84,7 @@ public class ServingClientLauncher
             logger.info("Connected to : " + wsUri);
 
             // wait for closed socket connection.
-            socket.awaitClose(5, TimeUnit.HOURS);
+            socket.awaitClose(10, TimeUnit.DAYS);
         }
         catch (Throwable ex)
         {
@@ -82,4 +97,56 @@ public class ServingClientLauncher
         }
 
     }
+
+    public void startFtpClient(String serverHost, int serverPort, String protocol, String topic,
+                            OperationsHandlerForServingClient operationsHandler, String file)
+    {
+        String uriPath = protocol + "://" + serverHost + ":" + serverPort + "/" + topic;
+
+        WebSocketClient websocketclient = new WebSocketClient();
+        ServingClientWebSocket socket = new ServingClientWebSocket(operationsHandler);
+        Session session = null;
+
+        try
+        {
+            URI wsUri= new URI(uriPath);
+
+            websocketclient.start();
+            websocketclient.setMaxIdleTimeout(Constants.WS_SESSION_IDLE_TIMEOUT);
+//            websocketclient.setMaxBinaryMessageBufferSize(1024 * 1024 * 1024);
+
+            ClientUpgradeRequest clientUpgradeRequest = new ClientUpgradeRequest();
+            clientUpgradeRequest.setHeader(Constants.REGISTER_AS_SERVING_CLIENT, "true");
+            clientUpgradeRequest.setHeader(Constants.REGISTER_AS_SERVING_FTP_CLIENT, "true");
+
+            session = websocketclient.connect(socket, wsUri, clientUpgradeRequest).get();
+            session.setIdleTimeout(Constants.WS_SESSION_IDLE_TIMEOUT);
+
+            logger.info("Connected to : " + wsUri);
+
+            FileReaderThread fileReaderThread = new FileReaderThread("", "", "", session);
+            fileReaderThread.fileTransfer(session, new File(file));
+
+//            // wait for closed socket connection.
+//            socket.awaitClose(10, TimeUnit.DAYS);
+        }
+        catch (Throwable ex)
+        {
+            logger.error("websocket client got error", ex);
+        }
+        finally
+        {
+            if(session != null)
+            {
+                Session finalSession = session;
+                Try.run(() -> finalSession.close())
+                        .onFailure(ex -> logger.error("exception while closing session", ex));
+            }
+
+            Try.run(() -> websocketclient.stop())
+                    .onFailure(ex -> logger.error("exception while closing websocket", ex));
+        }
+
+    }
+
 }

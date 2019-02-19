@@ -16,6 +16,8 @@ import org.lazycat.webshell.utils.WebsocketUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.lazycat.webshell.Constants.MB;
+
 public class WebShellLauncher {
 
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass().getSimpleName());
@@ -54,6 +56,8 @@ public class WebShellLauncher {
             {
                 ws.onConnect(session ->
                 {
+                    session.getPolicy().setMaxTextMessageSize(70 * MB);
+
                     if(! WebsocketUtils.isValidClient(session, serverNeedsServingClient))
                         return;
 
@@ -86,7 +90,7 @@ public class WebShellLauncher {
 
                 ws.onMessage((session, message) ->
                 {
-                    logger.info("WS : onMessage : " + session.getId() + " : " + message);
+                    logger.info("WS : onMessage : " + session.getId());
 
                     if(! WebsocketUtils.isValidJson(message))
                     {

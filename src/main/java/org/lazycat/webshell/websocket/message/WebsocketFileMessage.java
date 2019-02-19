@@ -1,16 +1,11 @@
 package org.lazycat.webshell.websocket.message;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.collections4.MapUtils;
 
 import java.io.IOException;
 import java.util.Map;
@@ -22,8 +17,10 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class WebsocketFileMessage
 {
+    private MessageType type = MessageType.FILE_TRANSFER;
     private String fileName;
     private String fileContentLine;
+    private byte[] fileContent;
     private String processUuid;
     private String receivingSessionUuid;
 
@@ -31,7 +28,7 @@ public class WebsocketFileMessage
     {
         Map<String, String> map = ((Map<String, String>) new ObjectMapper().convertValue(this, Map.class))
                 .entrySet().stream()
-                .filter(entry -> entry.getValue() == null)
+                .filter(entry -> entry.getValue() != null)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         return map;

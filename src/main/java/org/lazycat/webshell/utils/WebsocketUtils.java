@@ -104,6 +104,10 @@ public class WebsocketUtils
                 operationsHandler.onMessageTerminalOutput(processUuid, message);
                 break;
 
+            case FILE_TRANSFER:
+                operationsHandler.onMessageFtp(processUuid, message);
+                break;
+
             default:
                 logger.warn("Unrecognized action, " + message);
         }
