@@ -26,6 +26,8 @@ import org.lazycat.webshell.operation.impl.OperationsHandlerForServingClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.lazycat.webshell.Constants.MB;
+
 public class ServingClientLauncher
 {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass().getSimpleName());
@@ -47,9 +49,9 @@ public class ServingClientLauncher
         String file = MapUtils.getString(argsMap, Constants.file, "");
         Boolean runAsDaemon = MapUtils.getBoolean(argsMap, Constants.runAsDaemon, true);
 
-        ftpMode = true;
+//        ftpMode = true;
 //        file = "/Users/manish/Downloads/android-studio-ide-181.5056338_ORIGINAL.dmg";
-        file = "/Users/manish/Downloads/pom.xml";
+//        file = "/Users/manish/Downloads/pom.xml";
 
         OperationsHandlerForServingClient operationsHandler = new OperationsHandlerForServingClient();
 
@@ -72,7 +74,7 @@ public class ServingClientLauncher
             {
                 Try.run(() ->
                 {
-                    logger.info("serving-client us running as daemon, so will try to reconnect to server");
+                    logger.info("serving-client is running in daemon-mode, so it will try to reconnect to server");
                     Thread.sleep(15 * Constants.SEC);
                 });
             }
@@ -97,12 +99,14 @@ public class ServingClientLauncher
 
             websocketclient.start();
             websocketclient.setMaxIdleTimeout(Constants.WS_SESSION_IDLE_TIMEOUT);
+//            websocketclient.setMaxBinaryMessageBufferSize(70 * MB);
 
             ClientUpgradeRequest clientUpgradeRequest = new ClientUpgradeRequest();
             clientUpgradeRequest.setHeader(Constants.REGISTER_AS_SERVING_CLIENT, "true");
 
             session = websocketclient.connect(socket, wsUri, clientUpgradeRequest).get();
             session.setIdleTimeout(Constants.WS_SESSION_IDLE_TIMEOUT);
+            session.getPolicy().setMaxTextMessageSize(70 * MB);
 
             logger.info("Connected to : " + wsUri);
 
@@ -136,7 +140,7 @@ public class ServingClientLauncher
 
             websocketclient.start();
             websocketclient.setMaxIdleTimeout(Constants.WS_SESSION_IDLE_TIMEOUT);
-//            websocketclient.setMaxBinaryMessageBufferSize(1024 * 1024 * 1024);
+//            websocketclient.setMaxBinaryMessageBufferSize(70 * MB);
 
             ClientUpgradeRequest clientUpgradeRequest = new ClientUpgradeRequest();
             clientUpgradeRequest.setHeader(Constants.REGISTER_AS_SERVING_CLIENT, "true");
@@ -144,6 +148,7 @@ public class ServingClientLauncher
 
             session = websocketclient.connect(socket, wsUri, clientUpgradeRequest).get();
             session.setIdleTimeout(Constants.WS_SESSION_IDLE_TIMEOUT);
+            session.getPolicy().setMaxTextMessageSize(70 * MB);
 
             logger.info("Connected to : " + wsUri);
 

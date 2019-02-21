@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 import static org.lazycat.webshell.Constants.MB;
 
 @Slf4j
-public class FileReaderThread implements Callable
+public class FileReaderThread //implements Callable
 {
     private static final int CHUNK_SIZE = 50 * MB;
 
@@ -28,48 +28,21 @@ public class FileReaderThread implements Callable
     private String filesFailurePath;
     private Session websocketSession;
 
-    public FileReaderThread()
-    { }
-
-    public FileReaderThread(String filesLookupPath, String filesSuccessPath, String filesFailurePath, Session websocketSession) {
-        this.filesLookupPath = filesLookupPath;
-        this.filesSuccessPath = filesSuccessPath;
-        this.filesFailurePath = filesFailurePath;
-        this.websocketSession = websocketSession;
-    }
-
-    @Override
-    public Object call() throws Exception
-    {
-        FileUtils.forceMkdir(new File(filesLookupPath));
-        FileUtils.forceMkdir(new File(filesSuccessPath));
-        FileUtils.forceMkdir(new File(filesFailurePath));
-
-        List<File> filesToTransfer = Arrays.stream(new File(filesLookupPath).listFiles())
-                .filter(File::exists)
-                .filter(File::isFile)
-                .collect(Collectors.toList());
-
-        for(File fileToTransfer : filesToTransfer)
-        {
-            Try.run(() -> fileTransfer(websocketSession, fileToTransfer))
-                    .onSuccess(it -> Try.run(() -> FileUtils.moveFileToDirectory(fileToTransfer, new File(filesSuccessPath), true))
-                            .onFailure(ex -> log.error("cannot move file to " + filesSuccessPath, ex))
-                    )
-                    .onFailure(it -> Try.run(() -> FileUtils.moveFileToDirectory(fileToTransfer, new File(filesFailurePath), true))
-                            .onFailure(ex -> log.error("cannot move file to " + filesFailurePath, ex))
-                    );
-        }
-
-        return null;
-    }
-
     public void fileTransfer(Session websocketSession, File file) throws IOException
     {
         // /Users/manish/Downloads/android-studio-ide-181.5056338-mac.dmg
 
         if(file == null || ! file.exists() || file.isDirectory())
+        {
+            log.error("file doesnt exist or its a directory, so exiting, " + file);
             return;
+        }
+
+        if(websocketSession == null || ! websocketSession.isOpen())
+        {
+            log.error("websocketSession is closed, so exiting, " + websocketSession);
+            return;
+        }
 
         try(BufferedInputStream in = new BufferedInputStream(new FileInputStream(file)))
         {

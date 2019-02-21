@@ -8,6 +8,7 @@ import org.lazycat.webshell.operation.impl.OperationsHandlerForServerUsingServer
 import org.lazycat.webshell.operation.impl.OperationsHandlerForServerUsingServingClientMode;
 import org.lazycat.webshell.operation.interfaces.OperationsHandler;
 import org.lazycat.webshell.process.impl.local.LocalProcessInfo;
+import org.lazycat.webshell.server.ServingClientInfo;
 import org.lazycat.webshell.websocket.session.WebsocketSessionManager;
 import io.javalin.Javalin;
 
@@ -71,14 +72,7 @@ public class WebShellLauncher {
                     websocketSessionManager.addSession(session.getId(), session);
 
                     if(serverNeedsServingClient)
-                    {
                         operationsHandlerForServerUsingServingClientMode.onConnect(session.getId(), session);
-
-                        File senderFolder = new File("/tmp/sender/"); // TODO !!!
-                        FileUtils.forceMkdir(senderFolder);
-                        startFileTransferScheduler(websocketSessionManager.getServingClientInfo().getWebsocketSession(), senderFolder);
-
-                    }
                     else
                         operationsHandlerForServerUsingServerMode.onConnect(session.getId(), session);
                 });
@@ -124,20 +118,34 @@ public class WebShellLauncher {
             .start();
 
 
+        startFileTransferScheduler();
+
         return javalinServer;
     }
 
     ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
-    public ScheduledFuture startFileTransferScheduler(Session websocketSession, File folder) throws Exception
+    public ScheduledFuture startFileTransferScheduler() throws Exception
     {
+        File senderFolder = new File("/tmp/lazycat/sender/"); // TODO !!!
+        FileUtils.forceMkdir(senderFolder);
 
         ScheduledFuture scheduledFuture = executorService.scheduleAtFixedRate(() ->
         {
-            Stream.of(folder.listFiles()).forEach(file ->
-                    Try.run(() -> new FileReaderThread().fileTransfer(websocketSession, file))
-                            .onSuccess(it -> Try.run(() -> FileUtils.moveFileToDirectory(file, new File("/tmp/sender/done"), true)))
-                            .onFailure(ex -> logger.error("file transfer failed, " + ex))
+            Stream.of(senderFolder.listFiles())
+                    .filter(File::isFile)
+                    .forEach(file ->
+                    Try.run(() ->
+                    {
+                        ServingClientInfo servingClientInfo = websocketSessionManager.getServingClientInfo();
+
+                        if(WebsocketUtils.isAlive(servingClientInfo))
+                            new FileReaderThread().fileTransfer(servingClientInfo.getWebsocketSession(), file);
+                        else
+                            logger.warn("websocketSession is closed, so exiting, " + servingClientInfo);
+                    })
+                    .onSuccess(it -> Try.run(() -> FileUtils.moveFileToDirectory(file, new File("/tmp/lazycat/sender/done"), true)))
+                    .onFailure(ex -> logger.error("file transfer failed, " + ex))
             );
         }, 0,15, TimeUnit.SECONDS);
 

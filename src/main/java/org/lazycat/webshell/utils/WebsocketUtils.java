@@ -146,4 +146,12 @@ public class WebsocketUtils
                 .isSuccess();
     }
 
+    public static boolean isAlive(ServingClientInfo servingClientInfo)
+    {
+        if(servingClientInfo != null && servingClientInfo.getWebsocketSession() != null && servingClientInfo.getWebsocketSession().isOpen())
+            return true;
+
+        return false;
+    }
+
 }

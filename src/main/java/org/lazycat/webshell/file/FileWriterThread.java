@@ -52,7 +52,7 @@ public class FileWriterThread implements Callable
     {
         // /Users/manish/Downloads/android-studio-ide-181.5056338-mac.dmg
 
-        filesLookupPath = "/tmp/received/";
+        filesLookupPath = "/tmp/lazycat/received/";
         FileUtils.forceMkdir(new File(filesLookupPath));
 
         File file = new File(filesLookupPath + websocketFileMessage.getFileName());
