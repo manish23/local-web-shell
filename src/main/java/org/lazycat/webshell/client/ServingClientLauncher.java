@@ -45,17 +45,40 @@ public class ServingClientLauncher
         String topic = MapUtils.getString(argsMap, Constants.topic, "terminal");
         boolean ftpMode = MapUtils.getBoolean(argsMap, Constants.ftpMode, false);
         String file = MapUtils.getString(argsMap, Constants.file, "");
+        Boolean runAsDaemon = MapUtils.getBoolean(argsMap, Constants.runAsDaemon, true);
 
-//        ftpMode = true;
+        ftpMode = true;
 //        file = "/Users/manish/Downloads/android-studio-ide-181.5056338_ORIGINAL.dmg";
-//        file = "/Users/manish/Downloads/pom.xml";
+        file = "/Users/manish/Downloads/pom.xml";
 
         OperationsHandlerForServingClient operationsHandler = new OperationsHandlerForServingClient();
 
         if(ftpMode)
             new ServingClientLauncher().startFtpClient(serverHost, serverPort, protocol, topic, operationsHandler, file);
         else
-            new ServingClientLauncher().startClient(serverHost, serverPort, protocol, topic, operationsHandler);
+            new ServingClientLauncher().startClient(serverHost, serverPort, protocol, topic, operationsHandler, runAsDaemon);
+
+    }
+
+    public void startClient(String serverHost, int serverPort, String protocol, String topic,
+                            OperationsHandlerForServingClient operationsHandler, Boolean runAsDaemon)
+    {
+        while(true)
+        {
+            Try.run(() -> startClient(serverHost, serverPort, protocol, topic, operationsHandler))
+                    .onFailure(ex -> logger.error("serving-client failed", ex));
+
+            if(runAsDaemon)
+            {
+                Try.run(() ->
+                {
+                    logger.info("serving-client us running as daemon, so will try to reconnect to server");
+                    Thread.sleep(15 * Constants.SEC);
+                });
+            }
+            else
+                return;
+        }
 
     }
 
@@ -124,7 +147,7 @@ public class ServingClientLauncher
 
             logger.info("Connected to : " + wsUri);
 
-            FileReaderThread fileReaderThread = new FileReaderThread("", "", "", session);
+            FileReaderThread fileReaderThread = new FileReaderThread();
             fileReaderThread.fileTransfer(session, new File(file));
 
 //            // wait for closed socket connection.

@@ -26,6 +26,11 @@ public class FileWriterThread implements Callable
     private String filesFailurePath;
     private Session websocketSession;
 
+    public FileWriterThread()
+    {
+
+    }
+
     public FileWriterThread(String filesLookupPath, String filesSuccessPath, String filesFailurePath, Session websocketSession) {
         this.filesLookupPath = filesLookupPath;
         this.filesSuccessPath = filesSuccessPath;

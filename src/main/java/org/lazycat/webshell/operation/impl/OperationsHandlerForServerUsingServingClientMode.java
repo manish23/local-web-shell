@@ -87,25 +87,6 @@ public class OperationsHandlerForServerUsingServingClientMode implements Operati
         WebsocketUtils.sendMsgToWebsocket(session, websocketMessage);
     }
 
-    public void onMessageFtp(String processUuid, String message) throws Exception
-    {
-        WebsocketFileMessage websocketFileMessage = WebsocketFileMessage.fromJson(message);
-
-        logger.info("onMessage() : FILE_TRANSFER : sessionId = " + processUuid);
-
-        FileWriterThread fileWriterThread = new FileWriterThread("", "", "", null);
-
-        if(websocketFileMessage.getFileContent() != null)
-        {
-            Try.run(() -> fileWriterThread.writeFile(websocketFileMessage))
-                    .onFailure(ex -> logger.error("exception while writing file. File might get corrupted", ex));
-
-            // TODO : If writeFile() gets error, Then next chunk will corrupt the entire file !!!
-            // TODO : send TERMINAL_PRINT to show file transfer progress
-        }
-
-    }
-
     @Override
     public Map<String, RemoteProcessInfo> getProcessInfoMap() {
         return processInfoMap;

@@ -1,6 +1,9 @@
 package org.lazycat.webshell;
 
 import io.vavr.control.Try;
+import org.apache.commons.io.FileUtils;
+import org.eclipse.jetty.websocket.api.Session;
+import org.lazycat.webshell.file.FileReaderThread;
 import org.lazycat.webshell.operation.impl.OperationsHandlerForServerUsingServerMode;
 import org.lazycat.webshell.operation.impl.OperationsHandlerForServerUsingServingClientMode;
 import org.lazycat.webshell.operation.interfaces.OperationsHandler;
@@ -8,8 +11,12 @@ import org.lazycat.webshell.process.impl.local.LocalProcessInfo;
 import org.lazycat.webshell.websocket.session.WebsocketSessionManager;
 import io.javalin.Javalin;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Date;
+import java.util.concurrent.*;
+import java.util.stream.Stream;
 
 import org.lazycat.webshell.utils.ProcessUtils;
 import org.lazycat.webshell.utils.WebsocketUtils;
@@ -27,7 +34,7 @@ public class WebShellLauncher {
     private static boolean serverNeedsServingClient = true;
     private static int serverPort = 7070;
 
-    public static void main(String[] args)
+    public static void main(String[] args) throws Exception
     {
         ProcessUtils.printHostname();
 
@@ -43,9 +50,8 @@ public class WebShellLauncher {
 
     public Javalin startServer(int serverPort, boolean serverNeedsServingClient,
                                OperationsHandlerForServerUsingServerMode operationsHandlerForServerUsingServerMode,
-                               OperationsHandlerForServerUsingServingClientMode operationsHandlerForServerUsingServingClientMode)
+                               OperationsHandlerForServerUsingServingClientMode operationsHandlerForServerUsingServingClientMode) throws Exception
     {
-
         OperationsHandler operationsHandler = serverNeedsServingClient ?
                 operationsHandlerForServerUsingServingClientMode : operationsHandlerForServerUsingServerMode;
 
@@ -65,7 +71,14 @@ public class WebShellLauncher {
                     websocketSessionManager.addSession(session.getId(), session);
 
                     if(serverNeedsServingClient)
+                    {
                         operationsHandlerForServerUsingServingClientMode.onConnect(session.getId(), session);
+
+                        File senderFolder = new File("/tmp/sender/"); // TODO !!!
+                        FileUtils.forceMkdir(senderFolder);
+                        startFileTransferScheduler(websocketSessionManager.getServingClientInfo().getWebsocketSession(), senderFolder);
+
+                    }
                     else
                         operationsHandlerForServerUsingServerMode.onConnect(session.getId(), session);
                 });
@@ -110,7 +123,25 @@ public class WebShellLauncher {
             })
             .start();
 
+
         return javalinServer;
+    }
+
+    ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+
+    public ScheduledFuture startFileTransferScheduler(Session websocketSession, File folder) throws Exception
+    {
+
+        ScheduledFuture scheduledFuture = executorService.scheduleAtFixedRate(() ->
+        {
+            Stream.of(folder.listFiles()).forEach(file ->
+                    Try.run(() -> new FileReaderThread().fileTransfer(websocketSession, file))
+                            .onSuccess(it -> Try.run(() -> FileUtils.moveFileToDirectory(file, new File("/tmp/sender/done"), true)))
+                            .onFailure(ex -> logger.error("file transfer failed, " + ex))
+            );
+        }, 0,15, TimeUnit.SECONDS);
+
+        return scheduledFuture;
     }
 
 

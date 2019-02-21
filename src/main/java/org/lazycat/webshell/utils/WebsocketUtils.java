@@ -60,6 +60,10 @@ public class WebsocketUtils
                 operationsHandler.onMessageTerminalResize(message);
                 break;
 
+            case FILE_TRANSFER:
+                operationsHandler.onMessageFtp(null, message);
+                break;
+
             default:
                 logger.warn("Unrecognized action, " + message);
         }

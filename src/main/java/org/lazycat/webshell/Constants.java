@@ -19,8 +19,13 @@ public class Constants
     public static final String topic = "topic";
     public static final String ftpMode = "ftpMode";
     public static final String file = "file";
+    public static final String runAsDaemon = "runAsDaemon";
 
     public static final int KB = 1024;
     public static final int MB = 1024 * KB;
+
+    public static final int SEC = 1000;
+    public static final int MIN = 60 * SEC;
+    public static final int HOUR = 60 * MIN;
 
 }

@@ -28,6 +28,9 @@ public class FileReaderThread implements Callable
     private String filesFailurePath;
     private Session websocketSession;
 
+    public FileReaderThread()
+    { }
+
     public FileReaderThread(String filesLookupPath, String filesSuccessPath, String filesFailurePath, Session websocketSession) {
         this.filesLookupPath = filesLookupPath;
         this.filesSuccessPath = filesSuccessPath;
@@ -65,6 +68,9 @@ public class FileReaderThread implements Callable
     {
         // /Users/manish/Downloads/android-studio-ide-181.5056338-mac.dmg
 
+        if(file == null || ! file.exists() || file.isDirectory())
+            return;
+
         try(BufferedInputStream in = new BufferedInputStream(new FileInputStream(file)))
         {
             int msgCount = 1;
@@ -88,7 +94,7 @@ public class FileReaderThread implements Callable
 
                 log.info(msgCount++ + " : data chunk size = " + data.length + " : msg.len = " + websocketFileMessage.length());
 
-                websocketSession.getRemote().sendPartialString(websocketFileMessage,true);
+                websocketSession.getRemote().sendString(websocketFileMessage);
             }
 
         }
