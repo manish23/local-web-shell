@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.websocket.api.Session;
+import org.lazycat.webshell.utils.ProcessUtils;
 import org.lazycat.webshell.websocket.message.WebsocketFileMessage;
 
 import java.io.*;
@@ -52,7 +53,7 @@ public class FileWriterThread implements Callable
     {
         // /Users/manish/Downloads/android-studio-ide-181.5056338-mac.dmg
 
-        filesLookupPath = "/tmp/lazycat/received/";
+        filesLookupPath = ProcessUtils.getFtpRootFolder() + "received" + File.separator;
         FileUtils.forceMkdir(new File(filesLookupPath));
 
         File file = new File(filesLookupPath + websocketFileMessage.getFileName());

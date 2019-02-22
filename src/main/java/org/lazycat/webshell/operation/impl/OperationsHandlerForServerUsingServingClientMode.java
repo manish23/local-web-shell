@@ -30,7 +30,7 @@ public class OperationsHandlerForServerUsingServingClientMode implements Operati
     @Override
     public RemoteProcessInfo onConnect(String processUuid, WsSession currentSesssion) throws Exception
     {
-        if(WebsocketUtils.isServingClient(currentSesssion))
+        if(WebsocketUtils.isServingClient(currentSesssion) || WebsocketUtils.isServingFtpClient(currentSesssion))
             return null;
 
         String message = WebsocketMessage.builder()

@@ -119,7 +119,16 @@ public class ServingClientLauncher
         }
         finally
         {
+             if(session != null)
+            {
+                Session finalSession = session;
+                Try.run(() -> finalSession.close())
+                        .onSuccess(it -> logger.info("ssession closed, " + finalSession))
+                        .onFailure(ex -> logger.error("exception while closing session", ex));
+            }
+
             Try.run(() -> websocketclient.stop())
+                    .onSuccess(it -> logger.info("websocketclient stopped, " + websocketclient))
                     .onFailure(ex -> logger.error("exception while closing websocket", ex));
         }
 
@@ -143,7 +152,7 @@ public class ServingClientLauncher
 //            websocketclient.setMaxBinaryMessageBufferSize(70 * MB);
 
             ClientUpgradeRequest clientUpgradeRequest = new ClientUpgradeRequest();
-            clientUpgradeRequest.setHeader(Constants.REGISTER_AS_SERVING_CLIENT, "true");
+//            clientUpgradeRequest.setHeader(Constants.REGISTER_AS_SERVING_CLIENT, "true");
             clientUpgradeRequest.setHeader(Constants.REGISTER_AS_SERVING_FTP_CLIENT, "true");
 
             session = websocketclient.connect(socket, wsUri, clientUpgradeRequest).get();
@@ -168,11 +177,13 @@ public class ServingClientLauncher
             {
                 Session finalSession = session;
                 Try.run(() -> finalSession.close())
-                        .onFailure(ex -> logger.error("exception while closing session", ex));
+                        .onSuccess(it -> logger.info("ftp ssession closed, " + finalSession))
+                        .onFailure(ex -> logger.error("exception while closing ftp session", ex));
             }
 
             Try.run(() -> websocketclient.stop())
-                    .onFailure(ex -> logger.error("exception while closing websocket", ex));
+                    .onSuccess(it -> logger.info("ftp websocketclient stopped, " + websocketclient))
+                    .onFailure(ex -> logger.error("exception while closing ftp websocketclient", ex));
         }
 
     }

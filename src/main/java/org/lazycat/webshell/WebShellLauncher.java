@@ -90,7 +90,7 @@ public class WebShellLauncher {
                                 (LocalProcessInfo) operationsHandler.getProcessInfoMap().get(session.getId()));
                     }
 
-                    operationsHandler.getProcessInfoMap().remove(session.getId());
+                    operationsHandler.getProcessInfoMap().remove(session.getId()); // FIXME ???
                 });
 
                 ws.onError((session, error) -> logger.error(error.getMessage(), error));
@@ -127,7 +127,7 @@ public class WebShellLauncher {
 
     public ScheduledFuture startFileTransferScheduler() throws Exception
     {
-        File senderFolder = new File("/tmp/lazycat/sender/"); // TODO !!!
+        File senderFolder = new File(ProcessUtils.getFtpRootFolder() + "sender/"); // TODO !!!
         FileUtils.forceMkdir(senderFolder);
 
         ScheduledFuture scheduledFuture = executorService.scheduleAtFixedRate(() ->
@@ -144,8 +144,10 @@ public class WebShellLauncher {
                         else
                             logger.warn("websocketSession is closed, so exiting, " + servingClientInfo);
                     })
-                    .onSuccess(it -> Try.run(() -> FileUtils.moveFileToDirectory(file, new File("/tmp/lazycat/sender/done"), true)))
-                    .onFailure(ex -> logger.error("file transfer failed, " + ex))
+                            // FIXME : if client is offline then dont move file to /sender/done instead wait till client comes online
+                    .onSuccess(it -> Try.run(() -> FileUtils.moveFileToDirectory(file,
+                            new File(ProcessUtils.getFtpRootFolder() + "sender" + File.separator + "done"), true)))
+                    .onFailure(ex -> logger.error("file transfer failed", ex))
             );
         }, 0,15, TimeUnit.SECONDS);
 

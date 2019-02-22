@@ -28,4 +28,8 @@ public class Constants
     public static final int MIN = 60 * SEC;
     public static final int HOUR = 60 * MIN;
 
+
+    public static final String FTP_ROOT_FOLDER_LINUX = "/tmp/lazycat/";
+    public static final String FTP_ROOT_FOLDER_WINDOWS = "c:\\temp\\lazycat\\";
+
 }

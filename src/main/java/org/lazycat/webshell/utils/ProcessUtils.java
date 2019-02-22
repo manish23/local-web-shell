@@ -103,8 +103,10 @@ public class ProcessUtils
     {
         String tmpDir = System.getProperty("java.io.tmpdir");
 
-        if(SystemUtils.IS_OS_MAC)
+        if(SystemUtils.IS_OS_UNIX)
             tmpDir = "/tmp";
+        else
+            tmpDir = "c:\\temp";
 
         return tmpDir;
     }
@@ -276,4 +278,11 @@ public class ProcessUtils
         return nativeFiles;
     }
 
+    public static String getFtpRootFolder()
+    {
+        if(SystemUtils.IS_OS_UNIX)
+            return Constants.FTP_ROOT_FOLDER_LINUX;
+        else
+            return Constants.FTP_ROOT_FOLDER_WINDOWS;
+    }
 }

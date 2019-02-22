@@ -140,6 +140,12 @@ public class WebsocketUtils
                 session.getUpgradeRequest().getHeader(Constants.REGISTER_AS_SERVING_CLIENT));
     }
 
+    public static boolean isServingFtpClient(Session session)
+    {
+        return BooleanUtils.toBoolean(
+                session.getUpgradeRequest().getHeader(Constants.REGISTER_AS_SERVING_FTP_CLIENT));
+    }
+
     public static boolean isValidJson(String message)
     {
         return Try.run(() -> new ObjectMapper().readTree(message))
